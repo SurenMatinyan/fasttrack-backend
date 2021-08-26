@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, ManyToOne,  PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne,  PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserRole } from "../enum/user.role";
 import { Skills } from "./skills.model";
 
@@ -28,6 +28,12 @@ export class User {
 
     @Column()
     status: number
+
+    @CreateDateColumn()
+    created_at: Date
+
+    @UpdateDateColumn()
+    updated_at: Date
 
     @ManyToMany(() => Skills, skills => skills.user)
     skills: Skills[]

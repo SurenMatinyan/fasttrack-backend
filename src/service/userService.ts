@@ -18,10 +18,7 @@ class UserService {
             if(req.body.role === UserRole.staff || req.body.role === UserRole.student){
                 if(!!!req.body.skills || !!!req.body.skills[0]) throw new Error("skill not selected")
             }
-            const check = await this.connection(this.user).createQueryBuilder("user")
-                .where("user.email = :id", {id: req.body.email})
-                .getOne()
-            if (check) throw new Error("such user exists")
+            if (!!await this.connection(this.user).findOne({email: req.body.email})) throw new Error("such user exists")
             const hash = await bcrypt.hash(req.body.password, process.env.SALTROUND || 10);
             const create = await this.connection(this.user).save({
                 ...req.body,
@@ -29,7 +26,7 @@ class UserService {
                 status: UserStatus.pending,
                 rank: 0,
             })
-            if (create) return {message: "ok", token: this.genereteToken(create[0])}
+            if (create) return {message: "your request has been sent"}
             throw new Error("Something went wrong")
         }
         catch (e) {
@@ -39,13 +36,15 @@ class UserService {
 
     public async authorization (req: Request) {
         try{
-            const check = await this.connection(this.user).findOne({email: req.body.email})
+            const check = await this.connection(this.user).findOne({email: req.body.email, status: UserStatus.approved})
             if(check){
                 const checkPassword = await bcrypt.compare(req.body.password, check.password);
                 if(checkPassword){
                     return {message: 'ok', token: this.genereteToken(check)}
                 }
+                throw new Error()
             }
+            throw new Error()
         }
         catch(e){
             return {
@@ -73,9 +72,12 @@ class UserService {
 
     public async getAllRequest(req: Request) {
         try{
-            const allRequest = await this.connection(this.user).find({status: UserStatus.pending})
+            const allRequest = await this.connection(this.user).createQueryBuilder("user")
+                .where('user.status = :status', {status: UserStatus.pending})
+                .select(['user.id', 'user.surname', 'user.lastname', 'user.lastname', 'user.rank', 'user.role', 'user.status'])
+                .getMany()
             if(allRequest) return allRequest
-            return {message: "not new request"}
+            return {message: "not new request", status: 200}
         }
         catch(e){
             return {

@@ -73,8 +73,10 @@ class UserService {
     public async getAllRequest(req: Request) {
         try{
             const allRequest = await this.connection(this.user).createQueryBuilder("user")
+                
+            .select(['user.id', 'user.surname', 'user.lastname', 'user.lastname', 'user.rank', 'user.role', 'user.status', 'skill.name'])
                 .where('user.status = :status', {status: UserStatus.pending})
-                .select(['user.id', 'user.surname', 'user.lastname', 'user.lastname', 'user.rank', 'user.role', 'user.status'])
+                .innerJoin("user.skills", 'skill')
                 .getMany()
             if(allRequest) return allRequest
             return {message: "not new request", status: 200}

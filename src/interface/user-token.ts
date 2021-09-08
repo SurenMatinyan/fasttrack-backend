@@ -5,7 +5,8 @@ export interface IUserToken extends Request {
     user: {
         email: string
         id: number
-        role: "student" | "instructur" | "staff" | "admin"
+        role: "student" | "instructur" | "staff" | "admin",
+        status: 0 | 1 | 2
     }
 }
 

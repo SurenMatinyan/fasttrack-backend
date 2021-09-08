@@ -9,7 +9,7 @@ export class User {
     id: number
 
     @Column()
-    surname: string
+    name: string
 
     @Column()
     lastname: string

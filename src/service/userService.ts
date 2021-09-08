@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { UserStatus } from '../enum/user.status'
 import { UserRole } from '../enum/user.role'
+import { IUserToken } from '../interface/user-token'
 
 class UserService {
 
@@ -54,6 +55,23 @@ class UserService {
         }
     }
 
+    public async adminAuth (req: Request) {
+        try{
+            const check = await this.connection(this.user).findOne({email: req.body.email, role: UserRole.admin})
+            if(!check) throw new Error("authorization failed")
+                const checkPassword = await bcrypt.compare(req.body.password, check.password);
+            if(checkPassword){
+                return {message: 'ok', token: this.genereteToken(check)}
+            }
+            throw new Error()
+        }
+        catch(e){
+            return {
+                message: "Server Error",
+                status: 500
+            }
+        }
+    }
     
     public async acceptOrReject(req: Request){
         try{
@@ -73,8 +91,7 @@ class UserService {
     public async getAllRequest(req: Request) {
         try{
             const allRequest = await this.connection(this.user).createQueryBuilder("user")
-                
-            .select(['user.id', 'user.surname', 'user.lastname', 'user.lastname', 'user.rank', 'user.role', 'user.status', 'skill.name'])
+                .select(['user.id', 'user.name', 'user.lastname', 'user.rank', 'user.role', 'user.status', 'skill.name'])
                 .where('user.status = :status', {status: UserStatus.pending})
                 .innerJoin("user.skills", 'skill')
                 .getMany()
@@ -92,13 +109,47 @@ class UserService {
     
 
     private genereteToken(user: User){
-        return  this.jwtSer.sign({email: user.email, id: user.id, role: user.role}, process.env.JWTPASSWORD!, {
+        return  this.jwtSer.sign({email: user.email, id: user.id, role: user.role, status: user.status}, process.env.JWTPASSWORD!, {
             expiresIn: '6h',
         } ) 
     }
 
-    public async verifyJWTToken(token: string){
-        return await this.jwtSer.verify(token, process.env.JWTPASSWORD!)
+    public async verifyJWTToken(token: string): Promise<{status: number}>{
+        return await this.jwtSer.verify(token, process.env.JWTPASSWORD!) as any
+    }
+
+    public async myPage(req: any) {
+        try{
+            const {id} = req.user
+            return await this.connection(this.user).createQueryBuilder('user')
+            .where('user.id = :id', {id})
+            .select(['user.id', 'user.name', 'user.lastname', 'user.email', 'user.rank', 'user.role', 'skill.name',])
+            .innerJoin('user.skills', 'skill')
+            .getOne()
+        }
+        catch(e){
+            return {
+                message: "Server Error",
+                status: 500
+            }
+        }
+    }
+
+    public async profile(req: Request){
+        try{
+            const {id} = req.params
+            return await this.connection(this.user).createQueryBuilder('user')
+            .where('user.id = :id', {id})
+            .select(['user.id', 'user.name', 'user.lastname', 'user.rank', 'user.role', 'skill.name',])
+            .innerJoin('user.skills', 'skill')
+            .getOne()
+        }
+        catch(e){
+            return {
+                message: "Server Error",
+                status: 500
+            }
+        }
     }
 
 

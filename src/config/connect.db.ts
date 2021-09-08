@@ -1,4 +1,4 @@
-import {createConnection, Connection} from "typeorm";
+import {createConnection} from "typeorm";
 import { Skills } from "../models/skills.model";
 import { User } from "../models/user.model";
 

@@ -11,6 +11,9 @@ router.post('/registration', validate(authValidation.registration), UserControll
 router.post('/autorization', validate(authValidation.authorization), UserController.authorization);
 router.get('/allrequest', Auth as any, isAdmin as any, UserController.getAllRequest);
 router.put('/acceptorreject', Auth as any, isAdmin as any, validate(userValidation.acceptOrReject), UserController.acceptOrReject);
+router.post('/adminAuth', validate(authValidation.authorization), UserController.authAdmin)
+router.get('/mypage', Auth as any, UserController.myPage);
+router.get('/profile/:id', Auth as any, UserController.profile)
 
 
 

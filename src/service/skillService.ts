@@ -20,7 +20,7 @@ class SkillService {
                 .leftJoin('skills.user', 'user')
                 .where("user.status = :status", {status: UserStatus.approved})
                 .andWhere('skills.name = :name', {name:skills})
-                .select(["skills.name", "user.id", "user.surname as surname", "user.lastname as lastname", "user.rank as rank"])
+                .select(["skills.name", "user.id", "user.name as name", "user.lastname as lastname", "user.rank as rank"])
                 .getRawMany()
             if(users) {return users}
             return {message: "no user found"}

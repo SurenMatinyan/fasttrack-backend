@@ -2,6 +2,7 @@
 import { Response, NextFunction } from 'express'
 import userService from '../service/userService'
 import { IUserToken } from '../interface/user-token'
+import { UserStatus } from '../enum/user.status'
 
 export default async (req: IUserToken, res: Response, next: NextFunction) => {
     try {
@@ -13,7 +14,8 @@ export default async (req: IUserToken, res: Response, next: NextFunction) => {
             throw new Error('not authorization')
         }
         const user  = await userService.verifyJWTToken(token)
-        req.user = user as any 
+        if(user.status !== UserStatus.approved)  throw new Error(); 
+        req.user = user as any
         next()
     }
     catch (e) {
